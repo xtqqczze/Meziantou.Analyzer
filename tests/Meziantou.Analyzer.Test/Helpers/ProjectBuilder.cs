@@ -25,7 +25,7 @@ namespace TestHelper
 
         public string FileName { get; private set; }
         public string SourceCode { get; private set; } = "";
-        public string EditorConfig { get; private set; }
+        public Dictionary<string, string> AnalyzerConfiguration { get; private set; }
         public bool IsValidCode { get; private set; } = true;
         public LanguageVersion LanguageVersion { get; private set; } = LanguageVersion.Latest;
         public TargetFramework TargetFramework { get; private set; } = TargetFramework.NetStandard2_0;
@@ -51,7 +51,7 @@ namespace TestHelper
 
             async Task<string[]> Download()
             {
-                var tempFolder = Path.Combine(Path.GetTempPath(), "Meziantou.AnalyzerTests", "ref", packageName + '@' + version);
+                var tempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Meziantou.AnalyzerTests", "ref", packageName + '@' + version);
                 if (!Directory.Exists(tempFolder) || !Directory.EnumerateFileSystemEntries(tempFolder).Any())
                 {
                     Directory.CreateDirectory(tempFolder);
@@ -187,9 +187,16 @@ namespace TestHelper
             SourceCode = sb.ToString();
         }
 
-        public ProjectBuilder WithEditorConfig(string editorConfig)
+        public ProjectBuilder WithAnalyzerConfiguration(Dictionary<string, string> configuration)
         {
-            EditorConfig = editorConfig;
+            AnalyzerConfiguration = configuration;
+            return this;
+        }
+
+        public ProjectBuilder AddAnalyzerConfiguration(string key, string value)
+        {
+            AnalyzerConfiguration ??= new Dictionary<string, string>();
+            AnalyzerConfiguration[key] = value;
             return this;
         }
 

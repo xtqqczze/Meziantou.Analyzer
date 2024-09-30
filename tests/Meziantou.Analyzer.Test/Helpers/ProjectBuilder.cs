@@ -339,12 +339,15 @@ public sealed partial class ProjectBuilder
 
     public ProjectBuilder ShouldReportDiagnosticWithMessage(string message)
     {
+        if (_diagnosticMessageIndex >= ExpectedDiagnosticResults.Count)
+            throw new InvalidOperationException("Did you forget to annotate the code with [||]?");
+
         ExpectedDiagnosticResults[_diagnosticMessageIndex].Message = message;
         _diagnosticMessageIndex++;
         return this;
     }
 
-    public ProjectBuilder ShouldFixCodeWith(string codeFix) =>
+    public ProjectBuilder ShouldFixCodeWith([StringSyntax("C#-test")] string codeFix) =>
         ShouldFixCodeWith(index: null, codeFix);
 
     public ProjectBuilder ShouldFixCodeWith(int? index, [StringSyntax("C#-test")] string codeFix)

@@ -465,4 +465,64 @@ class TestClass
                 .WithSourceCode(originalCode)
                 .ValidateAsync();
     }
+
+    [Fact]
+    public async Task ReturnInUsingStatement()
+    {
+        var originalCode = """
+            class TestClass
+            {
+                System.Threading.Tasks.Task Test()
+                {
+                    using var disposable = (System.IDisposable)null;
+                    [||]return System.Threading.Tasks.Task.Delay(1);
+                }
+            }
+            """;
+
+        await CreateProjectBuilder()
+                .WithSourceCode(originalCode)
+                .WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8)
+                .ValidateAsync();
+    }
+
+    [Fact]
+    public Task UsingBlockBeforeAReturn()
+        => CreateProjectBuilder()
+                .WithSourceCode("""
+                    class TestClass
+                    {
+                        System.Threading.Tasks.Task Test()
+                        {
+                            using (var disposable = (System.IDisposable)null)
+                            {
+                            }
+
+                            return System.Threading.Tasks.Task.Delay(1);
+                        }
+                    }
+                    """)
+                .WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8)
+                .ValidateAsync();
+
+    [Fact]
+    public Task UsingBeforeAReturnWithLabel()
+        => CreateProjectBuilder()
+                .WithSourceCode("""
+                    class TestClass
+                    {
+                        System.Threading.Tasks.Task Test(bool test)
+                        {
+                            if (test) goto a;
+                                return System.Threading.Tasks.Task.Delay(1);
+
+                            a:
+                            using var disposable = (System.IDisposable) null;
+                            [||]return System.Threading.Tasks.Task.Delay(1);
+                        }
+
+                    }
+                    """)
+                .WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8)
+                .ValidateAsync();
 }
